@@ -1,0 +1,135 @@
+{
+  "name": "pandoc-pdf",
+  "displayName": "Pandoc PDF Converter",
+  "description": "Convert Markdown and other formats to PDF using Pandoc",
+  "version": "1.0.0",
+  "publisher": "pandoc-pdf",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "pdf",
+    "pandoc",
+    "converter",
+    "latex"
+  ],
+  "activationEvents": [
+    "onCommand:pandoc-pdf.convertCurrentFile",
+    "onCommand:pandoc-pdf.convertFolder",
+    "onCommand:pandoc-pdf.checkDependencies"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pandoc-pdf.convertCurrentFile",
+        "title": "Convert Current File to PDF",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.convertFolder",
+        "title": "Convert Folder to PDF",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.checkDependencies",
+        "title": "Check Dependencies",
+        "category": "Pandoc PDF"
+      }
+    ],
+    "configuration": {
+      "title": "Pandoc PDF",
+      "properties": {
+        "pandocPdf.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Output directory for PDF files. Leave empty to save in same directory as source file. Supports variables like ${workspaceFolder}, ${fileDirname}",
+          "markdownDescription": "Output directory for PDF files. Leave empty to save in same directory as source file. Supports variables like `${workspaceFolder}`, `${fileDirname}`"
+        },
+        "pandocPdf.pdfEngine": {
+          "type": "string",
+          "default": "xelatex",
+          "enum": ["xelatex", "pdflatex", "lualatex"],
+          "description": "PDF engine to use for conversion"
+        },
+        "pandocPdf.margins": {
+          "type": "object",
+          "default": {
+            "top": "1in",
+            "bottom": "1in",
+            "left": "1in",
+            "right": "1in"
+          },
+          "description": "Page margins (only applied if different from 1in)",
+          "properties": {
+            "top": {
+              "type": "string",
+              "default": "1in",
+              "description": "Top margin"
+            },
+            "bottom": {
+              "type": "string",
+              "default": "1in",
+              "description": "Bottom margin"
+            },
+            "left": {
+              "type": "string",
+              "default": "1in",
+              "description": "Left margin"
+            },
+            "right": {
+              "type": "string",
+              "default": "1in",
+              "description": "Right margin"
+            }
+          }
+        },
+        "pandocPdf.fontSize": {
+          "type": "string",
+          "default": "12pt",
+          "description": "Base font size"
+        },
+        "pandocPdf.paperSize": {
+          "type": "string",
+          "default": "letter",
+          "enum": ["letter", "a4", "legal", "a3", "a5"],
+          "description": "Paper size"
+        },
+        "pandocPdf.fontFamily": {
+          "type": "string",
+          "default": "Times New Roman",
+          "description": "Main font family"
+        },
+        "pandocPdf.checkDependenciesOnStartup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Check dependencies when extension activates"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^4.9.4"
+  }
+}
