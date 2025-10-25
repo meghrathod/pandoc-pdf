@@ -20,6 +20,8 @@
   "activationEvents": [
     "onCommand:pandoc-pdf.convertCurrentFile",
     "onCommand:pandoc-pdf.convertFolder",
+    "onCommand:pandoc-pdf.convertWithTemplate",
+    "onCommand:pandoc-pdf.previewPdf",
     "onCommand:pandoc-pdf.checkDependencies"
   ],
   "main": "./out/extension.js",
@@ -33,6 +35,16 @@
       {
         "command": "pandoc-pdf.convertFolder",
         "title": "Convert Folder to PDF",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.convertWithTemplate",
+        "title": "Convert with Template",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.previewPdf",
+        "title": "Preview PDF",
         "category": "Pandoc PDF"
       },
       {
