@@ -10,11 +10,11 @@ export function parsePandocError(error: string): ParsedError {
     const errorLower = error.toLowerCase();
     
     // Check for dependency issues
-    if (errorLower.includes('pandoc') && errorLower.includes('not found')) {
+    if (errorLower.includes('pandoc') && (errorLower.includes('not found') || errorLower.includes('command not found'))) {
         return {
             type: 'dependency',
             message: 'Pandoc is not installed or not found in PATH',
-            suggestion: 'Please install Pandoc using the installation instructions provided by the extension.'
+            suggestion: 'Please install Pandoc using the installation instructions provided by the extension. If Pandoc is installed, try restarting VS Code to refresh the PATH.'
         };
     }
     

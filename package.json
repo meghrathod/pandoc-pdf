@@ -1,28 +1,49 @@
 {
   "name": "pandoc-pdf",
-  "displayName": "Pandoc PDF Converter",
-  "description": "Convert Markdown and other formats to PDF using Pandoc",
+  "displayName": "Pandoc Markdown to PDF Converter",
+  "description": "Convert Markdown to PDF - Convert markdown files to PDF using Pandoc with customizable templates",
   "version": "1.0.0",
   "publisher": "pandoc-pdf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meghrathod/pandoc-pdf.git"
+  },
+  "homepage": "https://github.com/meghrathod/pandoc-pdf",
+  "bugs": {
+    "url": "https://github.com/meghrathod/pandoc-pdf/issues"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Formatters"
   ],
   "keywords": [
     "markdown",
     "pdf",
     "pandoc",
     "converter",
-    "latex"
+    "latex",
+    "convert markdown to pdf",
+    "markdown to pdf",
+    "pdf generator",
+    "document converter",
+    "template",
+    "formatting"
   ],
   "activationEvents": [
     "onCommand:pandoc-pdf.convertCurrentFile",
     "onCommand:pandoc-pdf.convertFolder",
     "onCommand:pandoc-pdf.convertWithTemplate",
     "onCommand:pandoc-pdf.previewPdf",
-    "onCommand:pandoc-pdf.checkDependencies"
+    "onCommand:pandoc-pdf.checkDependencies",
+    "onCommand:pandoc-pdf.convertWithCustomTemplate",
+    "onCommand:pandoc-pdf.createTemplate",
+    "onCommand:pandoc-pdf.showFontManager",
+    "onCommand:pandoc-pdf.refreshTemplates",
+    "onCommand:pandoc-pdf.editTemplate",
+    "onCommand:pandoc-pdf.deleteTemplate"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -51,8 +72,95 @@
         "command": "pandoc-pdf.checkDependencies",
         "title": "Check Dependencies",
         "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.convertWithCustomTemplate",
+        "title": "Convert with Custom Template",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.createTemplate",
+        "title": "Create Custom Template",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.showFontManager",
+        "title": "Show Available Fonts",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.refreshTemplates",
+        "title": "Refresh Templates",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.editTemplate",
+        "title": "Edit Template",
+        "category": "Pandoc PDF"
+      },
+      {
+        "command": "pandoc-pdf.deleteTemplate",
+        "title": "Delete Template",
+        "category": "Pandoc PDF"
       }
     ],
+    "views": {
+      "pandoc-pdf": [
+        {
+          "id": "pandoc-pdf-templates",
+          "name": "PDF Templates",
+          "when": "pandoc-pdf.extensionActive"
+        }
+      ]
+    },
+    "viewsContainers": [
+      {
+        "id": "pandoc-pdf",
+        "title": "Pandoc PDF",
+        "icon": "$(file-pdf)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pandoc-pdf.createTemplate",
+          "when": "view == pandoc-pdf-templates",
+          "group": "navigation"
+        },
+        {
+          "command": "pandoc-pdf.refreshTemplates",
+          "when": "view == pandoc-pdf-templates",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pandoc-pdf.convertWithTemplate",
+          "when": "view == pandoc-pdf-templates && viewItem == builtin-template",
+          "group": "inline"
+        },
+        {
+          "command": "pandoc-pdf.convertWithCustomTemplate",
+          "when": "view == pandoc-pdf-templates && viewItem == custom-template",
+          "group": "inline"
+        },
+        {
+          "command": "pandoc-pdf.editTemplate",
+          "when": "view == pandoc-pdf-templates && viewItem == custom-template",
+          "group": "inline"
+        },
+        {
+          "command": "pandoc-pdf.deleteTemplate",
+          "when": "view == pandoc-pdf-templates && viewItem == custom-template",
+          "group": "inline"
+        },
+        {
+          "command": "pandoc-pdf.showFontManager",
+          "when": "view == pandoc-pdf-templates && viewItem == fonts",
+          "group": "inline"
+        }
+      ]
+    },
     "configuration": {
       "title": "Pandoc PDF",
       "properties": {
@@ -71,10 +179,10 @@
         "pandocPdf.margins": {
           "type": "object",
           "default": {
-            "top": "1in",
-            "bottom": "1in",
-            "left": "1in",
-            "right": "1in"
+            "top": "0.5in",
+            "bottom": "0.5in",
+            "left": "0.75in",
+            "right": "0.75in"
           },
           "description": "Page margins (only applied if different from 1in)",
           "properties": {
@@ -102,7 +210,7 @@
         },
         "pandocPdf.fontSize": {
           "type": "string",
-          "default": "12pt",
+          "default": "11pt",
           "description": "Base font size"
         },
         "pandocPdf.paperSize": {
@@ -113,13 +221,59 @@
         },
         "pandocPdf.fontFamily": {
           "type": "string",
-          "default": "Times New Roman",
+          "default": "System",
           "description": "Main font family"
         },
         "pandocPdf.checkDependenciesOnStartup": {
           "type": "boolean",
           "default": false,
           "description": "Check dependencies when extension activates"
+        },
+        "pandocPdf.customTemplates": {
+          "type": "array",
+          "default": [],
+          "description": "Custom PDF templates",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Template name"
+              },
+              "description": {
+                "type": "string",
+                "description": "Template description"
+              },
+              "pdfEngine": {
+                "type": "string",
+                "enum": ["xelatex", "pdflatex", "lualatex"],
+                "description": "PDF engine"
+              },
+              "margins": {
+                "type": "object",
+                "description": "Page margins",
+                "properties": {
+                  "top": { "type": "string" },
+                  "bottom": { "type": "string" },
+                  "left": { "type": "string" },
+                  "right": { "type": "string" }
+                }
+              },
+              "fontSize": {
+                "type": "string",
+                "description": "Font size"
+              },
+              "paperSize": {
+                "type": "string",
+                "enum": ["letter", "a4", "legal", "a3", "a5", "a4paper", "letterpaper"],
+                "description": "Paper size"
+              },
+              "fontFamily": {
+                "type": "string",
+                "description": "Font family"
+              }
+            }
+          }
         }
       }
     }

@@ -6,6 +6,7 @@ import { getConfig } from '../config';
 import { convertFile } from '../converter';
 import { validateInputFile } from '../pathResolver';
 import { logError } from '../errorHandler';
+import { getTemplate } from '../templates';
 
 export async function convertFolder(): Promise<void> {
     // Check dependencies first
@@ -58,7 +59,13 @@ export async function convertFolder(): Promise<void> {
         title: `Converting ${markdownFiles.length} files to PDF...`,
         cancellable: true
     }, async (progress, token) => {
-        const config = getConfig();
+        // Use Blog Post template as default
+        const blogPostTemplate = getTemplate('Blog Post');
+        const defaultConfig = getConfig();
+        const config = blogPostTemplate ? {
+            ...defaultConfig,
+            ...blogPostTemplate.config
+        } : defaultConfig;
         let successCount = 0;
         let errorCount = 0;
         const errors: string[] = [];

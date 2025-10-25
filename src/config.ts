@@ -10,9 +10,27 @@ export interface PandocConfig {
         right: string;
     };
     fontSize: string;
-    paperSize: 'letter' | 'a4' | 'legal' | 'a3' | 'a5';
+    paperSize: 'letter' | 'a4' | 'legal' | 'a3' | 'a5' | 'a4paper' | 'letterpaper';
     fontFamily: string;
     checkDependenciesOnStartup: boolean;
+    customTemplates?: CustomTemplate[];
+    customVariables?: Record<string, string>;
+}
+
+export interface CustomTemplate {
+    name: string;
+    description: string;
+    pdfEngine: 'xelatex' | 'pdflatex' | 'lualatex';
+    margins: {
+        top: string;
+        bottom: string;
+        left: string;
+        right: string;
+    };
+    fontSize: string;
+    paperSize: 'letter' | 'a4' | 'legal' | 'a3' | 'a5' | 'a4paper' | 'letterpaper';
+    fontFamily: string;
+    customVariables?: Record<string, string>;
 }
 
 export function getConfig(): PandocConfig {
@@ -22,15 +40,16 @@ export function getConfig(): PandocConfig {
         outputDirectory: config.get('outputDirectory', ''),
         pdfEngine: config.get('pdfEngine', 'xelatex'),
         margins: config.get('margins', {
-            top: '1in',
-            bottom: '1in',
-            left: '1in',
-            right: '1in'
+            top: '0.5in',
+            bottom: '0.5in',
+            left: '0.75in',
+            right: '0.75in'
         }),
-        fontSize: config.get('fontSize', '12pt'),
+        fontSize: config.get('fontSize', '11pt'),
         paperSize: config.get('paperSize', 'letter'),
-        fontFamily: config.get('fontFamily', 'Times New Roman'),
-        checkDependenciesOnStartup: config.get('checkDependenciesOnStartup', false)
+        fontFamily: config.get('fontFamily', 'System'),
+        checkDependenciesOnStartup: config.get('checkDependenciesOnStartup', false),
+        customTemplates: config.get('customTemplates', [])
     };
 }
 

@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
 import { checkAllDependencies, getInstallationInstructions } from '../dependencies';
+import { AdvancedConverter } from '../advancedConverter';
 import { getConfig } from '../config';
-import { convertFile } from '../converter';
 import { validateInputFile } from '../pathResolver';
 import { parsePandocError, showErrorDialog, logError } from '../errorHandler';
-import { getTemplate } from '../templates';
 
-export async function convertCurrentFile(): Promise<void> {
+export async function convertWithCustomTemplate(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         vscode.window.showErrorMessage('No active editor found. Please open a Markdown file.');
@@ -43,30 +42,69 @@ export async function convertCurrentFile(): Promise<void> {
         return;
     }
 
+    // Get custom templates from settings
+    const config = getConfig();
+    const customTemplates = config.customTemplates || [];
+
+    if (customTemplates.length === 0) {
+        vscode.window.showInformationMessage('No custom templates found. Create one first using the template manager.');
+        return;
+    }
+
+    // Show template selection
+    const templateItems = customTemplates.map((template: any, index: number) => ({
+        label: template.name,
+        description: template.description,
+        template,
+        index
+    }));
+
+    const selectedTemplate = await vscode.window.showQuickPick(templateItems, {
+        placeHolder: 'Select a custom template',
+        title: 'Choose Custom Template'
+    });
+
+    if (!selectedTemplate) {
+        return;
+    }
+
     // Show progress
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Converting to PDF...',
+        title: `Converting with ${selectedTemplate.label} template...`,
         cancellable: false
     }, async (progress) => {
         try {
-            // Use Blog Post template as default
-            const blogPostTemplate = getTemplate('Blog Post');
-            const defaultConfig = getConfig();
-            const config = blogPostTemplate ? {
-                ...defaultConfig,
-                ...blogPostTemplate.config
-            } : defaultConfig;
+            progress.report({ message: 'Starting conversion...' });
             
+            const converter = new AdvancedConverter((conversionProgress) => {
+                progress.report({
+                    message: conversionProgress.message,
+                    increment: conversionProgress.percentage - (progress as any).lastPercentage || 0
+                });
+                (progress as any).lastPercentage = conversionProgress.percentage;
+            });
             
-            progress.report({ message: 'Starting conversion with Blog Post template...' });
-            
-            const result = await convertFile(filePath, config);
+            // Convert custom template to the format expected by AdvancedConverter
+            const templateConfig = {
+                pdfEngine: selectedTemplate.template.pdfEngine,
+                margins: selectedTemplate.template.margins,
+                fontSize: selectedTemplate.template.fontSize,
+                paperSize: selectedTemplate.template.paperSize,
+                fontFamily: selectedTemplate.template.fontFamily,
+                customVariables: {}
+            };
+
+            const result = await converter.convertWithTemplate({
+                inputPath: filePath,
+                outputPath: filePath.replace(/\.(md|markdown)$/i, '.pdf'),
+                template: undefined, // We'll use custom config instead
+                customConfig: templateConfig
+            });
             
             if (result.success && result.outputPath) {
-                progress.report({ message: 'Conversion completed!' });
                 vscode.window.showInformationMessage(
-                    `PDF created successfully: ${result.outputPath}`,
+                    `PDF created successfully with ${selectedTemplate.label} template: ${result.outputPath}`,
                     'Open PDF'
                 ).then(selection => {
                     if (selection === 'Open PDF') {
@@ -76,12 +114,12 @@ export async function convertCurrentFile(): Promise<void> {
             } else {
                 const parsedError = parsePandocError(result.error || 'Unknown error');
                 showErrorDialog(parsedError);
-                logError(result.error || 'Unknown error', 'convertCurrentFile');
+                logError(result.error || 'Unknown error', 'convertWithCustomTemplate');
             }
         } catch (error: any) {
             const parsedError = parsePandocError(error.message);
             showErrorDialog(parsedError);
-            logError(error.message, 'convertCurrentFile');
+            logError(error.message, 'convertWithCustomTemplate');
         }
     });
 }
